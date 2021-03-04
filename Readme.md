@@ -8,10 +8,10 @@
 
 
 Установка zfs
-1. Проверяем версию установленной системы '''cat /etc/redhat-release'''
+1. Проверяем версию установленной системы ```cat /etc/redhat-release```
 2. Подключаем репозиторий и ключ pgp 
-'''yum install https://zfsonlinux.org/epel/zfs-release.el7_8.noarch.rpm
-   gpg --quiet --with-fingerprint /etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux'''
+    ```yum install https://zfsonlinux.org/epel/zfs-release.el7_8.noarch.rpm
+    gpg --quiet --with-fingerprint /etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux```
 3. Вклчаем KMOD в настройках и устанавливаем zfs
 ''' sudo yum-config-manager --disable zfs
     sudo yum-config-manager --enable zfs-kmod
