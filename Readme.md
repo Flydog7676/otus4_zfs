@@ -7,18 +7,21 @@
     3) Найти сообщение от преподавателей
 
 
-1) Определить алгоритм с наилучшим сжатием
-    a) Установка zfs
-    Проверяем версию установленной системы ```cat /etc/redhat-release```
-    Подключаем репозиторий и ключ pgp 
-    ```yum install https://zfsonlinux.org/epel/zfs-release.el7_8.noarch.rpm```
-    ```gpg --quiet --with-fingerprint /etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux```
-    Вклчаем KMOD в настройках и устанавливаем zfs
-    ```yum-config-manager --disable zfs ```
-    ```yum-config-manager --enable zfs-kmod```
-    ```sudo yum -y install zfs```
-
-4. Перезагружаемся '''reboot now'''
+1. Определить алгоритм с наилучшим сжатием
+- Установка ZFS
+- Проверяем версию установленной системы ```cat /etc/redhat-release```
+- Подключаем репозиторий и ключ pgp:
+```
+yum install https://zfsonlinux.org/epel/zfs-release.el7_8.noarch.rpm
+gpg --quiet --with-fingerprint /etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux
+```
+- Включаем KMOD в настройках и устанавливаем ZFS:
+```
+yum-config-manager --disable zfs
+    yum-config-manager --enable zfs-kmod
+    sudo yum -y install zfs
+```
+- Перезагружаемся ```reboot now```
 
 5. Для автоматической загрузки модуля создаем файл '''/etc/modules-load.d/zfs.conf''' и прописываем туда модуль '''zfs''' 
 6. Загружаем модуль '''modprobe zfs'''и проверяем загрузку zfs '''lsmod | grep zfs'''
