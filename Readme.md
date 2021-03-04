@@ -8,7 +8,6 @@
 
 
 1. Определить алгоритм с наилучшим сжатием
-- Установка ZFS
 - Проверяем версию установленной системы ```cat /etc/redhat-release```
 - Подключаем репозиторий и ключ pgp:
 ```
@@ -23,33 +22,31 @@ yum-config-manager --disable zfs
 ```
 - Перезагружаемся ```reboot now```
 
-5. Для автоматической загрузки модуля создаем файл '''/etc/modules-load.d/zfs.conf''' и прописываем туда модуль '''zfs''' 
-6. Загружаем модуль '''modprobe zfs'''и проверяем загрузку zfs '''lsmod | grep zfs'''
-
-Создание zfs пула и разделов 
-1. Проверяем имеющиеся диски  и создаем пул c именем ZFSpool
-''' lsblk
-    zpool create -f ZFSpool mirror /dev/sdb /dev/sdc'''
-
-2. Проверяем статус и ошибки пула '''zpool status'''
-3. Проверяем объем и точку монтирования пула '''zfs list'''
-4. Создаем разделы с разным типом сжатия
-'''
-   zfs create ZFSpool/gzip
-   zfs set compression=gzip-9 ZFSpool/gzip
-   zfs create ZFSpool/lz4
-   zfs set compression=lz4 ZFSpool/lz4
-   zfs create ZFSpool/lzjb
-   zfs set compression=lzjb ZFSpool/lzjb
-   zfs create ZFSpool/zle
-   zfs set compression=zle ZFSpool/zle  '''
-5. Проверяем ''' zfs list -o compression '''
-6. Скачиваем файл wget -O War_and_Peace.txt http://www.gutenberg.org/ebooks/2600.txt.utf-8
-7. Копируем его во все созданные тома
-''' echo "/ZFSpool/gzip/ /ZFSpool/lz4/ /ZFSpool/lzjb/ /ZFSpool/zle/" | xargs -n 1 cp -v War_and_Peace.txt '''
-8. Проверяем степень сжатия 
-'''
-zfs get compression,compressratio
+- Для автоматической загрузки модуля создаем файл ```/etc/modules-load.d/zfs.conf``` и прописываем туда модуль ```zfs``` 
+- Загружаем модуль ```modprobe zfs```и проверяем загрузку ZFS ```lsmod | grep zfs```
+- Проверяем имеющиеся диски  и создаем pool c именем ZFSpool:
+```
+lsblk
+zpool create -f ZFSpool mirror /dev/sdb /dev/sdc
+```
+- Проверяем что pool создался и есть ли ошибки ```zpool status```
+- Проверяем объем и точку монтирования pool ```zfs list```
+- Создаем на pool доп разделы с разным типом сжатия:
+```
+zfs create ZFSpool/gzip
+zfs set compression=gzip-9 ZFSpool/gzip
+zfs create ZFSpool/lz4
+zfs set compression=lz4 ZFSpool/lz4
+zfs create ZFSpool/lzjb
+zfs set compression=lzjb ZFSpool/lzjb
+zfs create ZFSpool/zle
+zfs set compression=zle ZFSpool/zle
+```
+- Скачиваем файл ```wget -O War_and_Peace.txt http://www.gutenberg.org/ebooks/2600.txt.utf-8```
+- Копируем этот файл во все созданные разделы ```echo "/ZFSpool/gzip/ /ZFSpool/lz4/ /ZFSpool/lzjb/ /ZFSpool/zle/" | xargs -n 1 cp -v War_and_Peace.txt```
+- Проверяем степень сжатия:
+    ```zfs get compression,compressratio```
+```
 AME          PROPERTY       VALUE     SOURCE
 ZFSpool       compression    off       default
 ZFSpool       compressratio  1.08x     -
@@ -60,47 +57,65 @@ ZFSpool/lz4   compressratio  1.08x     -
 ZFSpool/lzjb  compression    lzjb      local
 ZFSpool/lzjb  compressratio  1.07x     -
 ZFSpool/zle   compression    zle       local
-ZFSpool/zle   compressratio  1.08x     -     '''
-
-Делаю вывод, что на на текстовых файлах малого объема не видно разницы в типах сжатия.
-При копировании же ```cp -R /etc/ /ZFSpool/gzip```
-zfs get compression,compressratio ZFSpool/gzip
-NAME          PROPERTY       VALUE     SOURCE
+ZFSpool/zle   compressratio  1.08x     -     
+```
+- Можно сделать вывод, что на на текстовых файлах малого объема не видно разницы в типах сжатия.
+- При копировании же по папкам большего объема ```echo "/ZFSpool/gzip/ /ZFSpool/lz4/ /ZFSpool/lzjb/ /ZFSpool/zle/" | xargs -n 1 cp -R /etc/```
+    ```zfs get compression,compressratio ZFSpool/gzip```
+```
+AME          PROPERTY       VALUE     SOURCE
+ZFSpool       compression    off       default
+ZFSpool       compressratio  1.70x     -
 ZFSpool/gzip  compression    gzip-9    local
-ZFSpool/gzip  compressratio  2.38x     -
+ZFSpool/gzip  compressratio  2.45x     -
+ZFSpool/lz4   compression    lz4       local
+ZFSpool/lz4   compressratio  1.78x     -
+ZFSpool/lzjb  compression    lzjb      local
+ZFSpool/lzjb  compressratio  1.84x     -
+ZFSpool/zle   compression    zle       local
+ZFSpool/zle   compressratio  1.25x     -     
+```
+- Можно сделать вывод что максимальное сжатие дает gzip
 
-Настройки pool для переноса диска
-1. Скачиваем файл
-    wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1KRBNW33QWqbvbVHa3hLJivOAt60yukkg' -O zfs_task1.tar.gz
-2. Подготавливаем pool для экспорта и проверяем статус pool
+2. Определить настройки poola
+- Скачиваем файл
+    ```wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1KRBNW33QWqbvbVHa3hLJivOAt60yukkg' -O zfs_task1.tar.gz``
+- Копируем в один из разделов: ```cp -v  zfs_task1.tar.gz /ZFSpool/gzip/ ```
+- Подготавливаем pool для экспорта и проверяем статус pool
+```
 zpool export ZFSpool
 zpool status
-3.  импортируем pool в новый
-zpool import ZFSpool storage
-4. проверяем zpool status
-5. Ставим параметры системы
-    zfs set recordsize=1M storage/gzip
-    zfs get recordsize
+```
+- импортируем pool в новое место: ```zpool import ZFSpool storage```
+- проверяем импортированный pool и наличие файла:
+```
+ zpool status
+ ls /storage/gzip
+```
+- Изменяем параметры файловой системы:
+``` 
+zfs set recordsize=1M storage/gzip #изменение размера блока 
+zfs get recordsize
+zfs set checksum=sha256 storage/gzip #изменение вида контрольной суммы
+zfs get checksum
+zfs set compression=gzip storage/gzip #изменение вида компрессии
+zfs get compression
+```
+- Просмотр всех настроек ```zfs get all```
 
-    zfs set checksum=sha256 storage/gzip
-    zfs get recordsize
-
-    zfs set compression=gzip storage/gzip
-    zfs get compression
-
-Просмотр всех настроек 
-    zfs get all
-
-восстановление Снапшота
-1. Скопировать
+3. Найти сообщение от преподавателей
+- Копируем файл снапшота:
+```
     wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1gH8gCL9y7Nd5Ti3IRmplZPF1XjzxeRAG' -O otus_task2.file
-2. zfs  receive  -F storage < otus_task2.file
-3. Ищем и открываем секретный файл
-    find /storage -iname secret_message
+```
+- восстанавливаем снапшот в нашей системе в уже готовый раздел: ```zfs  receive  -F storage < otus_task2.file```
+- проверяем в разделе storage ``` ls -l /storage``` и видим что там появились дополнтельные файлы которых небыло
+- Мы знаем имя искомого секретного файла, поэтому ищем: ```find /storage -iname secret_message```
+```
 видим 
     /storage/task1/file_mess/secret_message
-4.  Смотрим секретный файл
-    cat /storage/task1/file_mess/secret_message
-там секретная ссылка:
-    https://github.com/sindresorhus/awesome
+```
+- Смотрим секретный файл ```cat /storage/task1/file_mess/secret_message```
+и видим там:
+###    https://github.com/sindresorhus/awesome
 
