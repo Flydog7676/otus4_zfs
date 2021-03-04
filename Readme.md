@@ -61,8 +61,9 @@ ZFSpool/zle   compressratio  1.08x     -
 ```
 - Можно сделать вывод, что на на текстовых файлах малого объема не видно разницы в типах сжатия.
 - При копировании же по папкам большего объема ```echo "/ZFSpool/gzip/ /ZFSpool/lz4/ /ZFSpool/lzjb/ /ZFSpool/zle/" | xargs -n 1 cp -R /etc/```
-    ```zfs get compression,compressratio ZFSpool/gzip```
-```
+
+```zfs get compression,compressratio ZFSpool/gzip
+
 AME          PROPERTY       VALUE     SOURCE
 ZFSpool       compression    off       default
 ZFSpool       compressratio  1.70x     -
@@ -111,8 +112,9 @@ zfs get compression
 - восстанавливаем снапшот в нашей системе в уже готовый раздел: ```zfs  receive  -F storage < otus_task2.file```
 - проверяем в разделе storage ``` ls -l /storage``` и видим что там появились дополнтельные файлы которых небыло
 - Мы знаем имя искомого секретного файла, поэтому ищем: ```find /storage -iname secret_message```
-```
-видим 
+
+видим
+``` 
     /storage/task1/file_mess/secret_message
 ```
 - Смотрим секретный файл ```cat /storage/task1/file_mess/secret_message```
